@@ -33,7 +33,6 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message_box = st.empty()
 
     def on_llm_end(self, *args, **kwargs):
-        save_message(self.message, "ai")
         self.message = ""  # Reset the message after saving
 
     def on_llm_new_token(self, token, *args, **kwargs):
@@ -87,6 +86,10 @@ def embed_file(file, api_key):
 
 
 def save_message(message, role):
+    # Remove 'content=' prefix if it exists
+    if message.startswith("content='") and message.endswith("'"):
+        # Remove the first 9 characters and the last character
+        message = message[9:-1]
     st.session_state["messages"].append({"message": message, "role": role})
 
 
@@ -167,8 +170,7 @@ if api_key:
                     } | prompt | llm)
                     with st.chat_message("ai"):
                         response = chain.invoke(message)
-                        st.session_state["messages"].append(
-                            {"message": response, "role": "ai"})
+                        save_message(response.content, "ai")
             except Exception as e:
                 st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
                 logging.error(

@@ -70,11 +70,12 @@ Document GPT는 Streamlit을 이용해 만든 대화형 문서 분석 애플리�
 6. [OpenAI 모델 초기화](#openai-모델-초기화)
 7. [파일 임베딩](#파일-임베딩)
 8. [메시지 관리 함수](#메시지-관리-함수)
-9. [프롬프트 템플릿](#프롬프트-템플릿)
-10. [API 키 검증](#api-키-검증)
-11. [메인 UI 구성](#메인-ui-구성)
-12. [메인 로직](#메인-로직)
-13. [결론](#결론)
+9. [문서 포맷팅](#문서-포맷팅)
+10. [프롬프트 템플릿](#프롬프트-템플릿)
+11. [API 키 검증](#api-키-검증)
+12. [메인 UI 구성](#메인-ui-구성)
+13. [메인 로직](#메인-로직)
+14. [결론](#결론)
 
 ## 개요
 
@@ -131,20 +132,23 @@ Streamlit 애플리케이션의 기본 설정을 정의합니다.
 
 ```python
 class ChatCallbackHandler(BaseCallbackHandler):
-    message = ""
+    def __init__(self):
+        self.message = ""
+        self.message_box = None
 
     def on_llm_start(self, *args, **kwargs):
         self.message_box = st.empty()
 
     def on_llm_end(self, *args, **kwargs):
-        save_message(self.message, "ai")
+        self.message = ""  # Reset the message after saving
 
     def on_llm_new_token(self, token, *args, **kwargs):
         self.message += token
-        self.message_box.markdown(self.message)
+        if self.message_box:
+            self.message_box.markdown(self.message)
 ```
 
-OpenAI의 스트리밍 응답을 실시간으로 화면에 표시하기 위한 콜백 핸들러입니다.
+OpenAI의 스트리밍 응답을 실시간으로 화면에 표시하기 위한 콜백 핸들러입니다. 토큰이 생성될 때마다 메시지를 업데이트하고 표시합니다.
 
 ## OpenAI 모델 초기화
 
@@ -159,7 +163,7 @@ def get_openai_model(api_key):
     )
 ```
 
-OpenAI 모델을 초기화하고 캐싱합니다.
+OpenAI 모델을 초기화하고 캐싱합니다. 스트리밍 모드를 사용하여 실시간 응답을 가능하게 합니다.
 
 ## 파일 임베딩
 
@@ -179,21 +183,44 @@ def embed_file(file, api_key):
     file_path = os.path.join(files_dir, file.name)
     logging.info(f'file_path: {file_path}')
 
-    # ... (파일 읽기, 텍스트 분할, 임베딩 생성 등)
+    file_content = file.read()
+    with open(file_path, "wb") as f:
+        f.write(file_content)
+
+    embeddings_store = LocalFileStore(os.path.join(embeddings_dir, file.name))
+    splitter = CharacterTextSplitter.from_tiktoken_encoder(
+        separator="\n",
+        chunk_size=600,
+        chunk_overlap=100,
+    )
+    loader = UnstructuredFileLoader(file_path)
+    docs = loader.load_and_split(text_splitter=splitter)
+    embeddings = OpenAIEmbeddings(openai_api_key=api_key)
+    cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
+        embeddings, embeddings_store)
+    vectorstore = FAISS.from_documents(docs, cached_embeddings)
+    retriever = vectorstore.as_retriever()
     return retriever
 ```
 
-업로드된 파일을 처리하고 임베딩합니다. 캐시 디렉토리를 생성하고 관리합니다.
+업로드된 파일을 처리하고 임베딩합니다. 캐시 디렉토리를 생성하고 관리합니다. 파일을 청크로 분할하고, 임베딩을 생성한 후 FAISS 벡터 저장소에 저장합니다.
 
 ## 메시지 관리 함수
 
 ```python
 def save_message(message, role):
+    # Remove 'content=' prefix if it exists
+    if message.startswith("content='") and message.endswith("'"):
+        # Remove the first 9 characters and the last character
+        message = message[9:-1]
     st.session_state["messages"].append({"message": message, "role": role})
 
 def send_message(message, role, save=True):
     with st.chat_message(role):
-        st.markdown(message)
+        if role == "ai":
+            st.empty().markdown(message)
+        else:
+            st.markdown(message)
     if save:
         save_message(message, role)
 
@@ -202,7 +229,16 @@ def paint_history():
         send_message(message["message"], message["role"], save=False)
 ```
 
-채팅 히스토리를 관리하는 함수들입니다.
+채팅 히스토리를 관리하는 함수들입니다. `save_message`는 메시지를 세션 상태에 저장하고, `send_message`는 메시지를 화면에 표시합니다. `paint_history`는 저장된 모든 메시지를 화면에 다시 그립니다.
+
+## 문서 포맷팅
+
+```python
+def format_docs(docs):
+    return "\n\n".join(document.page_content for document in docs)
+```
+
+검색된 문서들을 하나의 문자열로 포맷팅합니다.
 
 ## 프롬프트 템플릿
 
@@ -213,7 +249,7 @@ prompt = ChatPromptTemplate.from_messages(
             "system",
             """
             Answer the question using ONLY the following context. If you don't know the answer just say you don't know. DON'T make anything up.
-
+            
             Context: {context}
             """,
         ),
@@ -222,7 +258,7 @@ prompt = ChatPromptTemplate.from_messages(
 )
 ```
 
-AI에게 전달할 프롬프트의 구조를 정의합니다.
+AI에게 전달할 프롬프트의 구조를 정의합니다. 시스템 메시지와 사용자 질문으로 구성됩니다.
 
 ## API 키 검증
 
@@ -240,7 +276,7 @@ def is_valid_api_key(api_key):
         return False
 ```
 
-제공된 OpenAI API 키의 유효성을 검사합니다.
+제공된 OpenAI API 키의 유효성을 검사합니다. OpenAI의 모델 리스트 엔드포인트를 호출하여 확인합니다.
 
 ## 메인 UI 구성
 
@@ -256,7 +292,7 @@ with st.sidebar:
                             "pdf", "txt", "docx", "md"])
 ```
 
-애플리케이션의 메인 UI를 구성합니다.
+애플리케이션의 메인 UI를 구성합니다. 제목, 설명, API 키 입력 필드, 파일 업로더를 포함합니다.
 
 ## 메인 로직
 
@@ -280,16 +316,21 @@ if api_key:
                         "question": RunnablePassthrough(),
                     } | prompt | llm)
                     with st.chat_message("ai"):
-                        chain.invoke(message)
+                        response = chain.invoke(message)
+                        save_message(response.content, "ai")
             except Exception as e:
                 st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
-                logging.error(f"Error processing file: {str(e)}", exc_info=True)
+                logging.error(
+                    f"Error processing file: {str(e)}", exc_info=True)
         else:
             st.warning("Please upload a file in the sidebar.")
     else:
         st.error("Invalid API key. Please check your OpenAI API key and try again.")
 elif not api_key:
     st.warning("Please enter your OpenAI API key in the sidebar.")
+
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
 ```
 
 애플리케이션의 주요 로직을 구현합니다:
@@ -298,6 +339,8 @@ elif not api_key:
 3. 사용자 입력 처리
 4. AI 응답 생성 및 표시
 5. 오류 처리 및 로깅
+
+메시지 히스토리를 세션 상태에 저장하여 대화의 연속성을 유지합니다.
 
 ## 결론
 
