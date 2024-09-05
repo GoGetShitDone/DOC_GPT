@@ -25,7 +25,7 @@ def main():
     st.title("📄 Document GPT")
 
     with st.sidebar:
-        st.write("Options")
+        st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">GitHub</button></a>', unsafe_allow_html=True)
         app_mode = st.selectbox("Choose the app mode",
                                 ["Home", "Source code"])
 
