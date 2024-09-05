@@ -31,12 +31,22 @@ def main():
 
     if app_mode == "Home":
         st.markdown("""
-            ## Hi there🍀
-                사용 방법
-                \n\n
-                ### blablabla
-                # \n\n
-            ### blablabla
+            ## 🍀 README 🍀
+                1. app 페이지
+                    - 기본 안내사항을 받을 수 있습니다. 
+                    - 옵션에서 Source Code 를 선택해서 코드를 확인할 수 있습니다. 
+                \n
+                2. Document 페이지
+                    - API 키를 입력하고 유효성 검증합니다. 
+                    - 문서를 첨부하고 문서를 바탕으로 AI에게 질문하고 답변받을 수 있습니다. 
+                \n
+                3. 기타: 파일 구조 
+                    .
+                    ├── .gitignore
+                    ├── app.py
+                    ├── pages
+                    │   └── Document_gpt.py
+                    └── requirements.txt
             """)
     elif app_mode == "Source code":  # Changed to match the selectbox option
         st.markdown("## Source CODE")
