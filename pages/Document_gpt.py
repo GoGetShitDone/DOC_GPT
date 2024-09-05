@@ -25,17 +25,21 @@ st.set_page_config(
 
 
 class ChatCallbackHandler(BaseCallbackHandler):
-    message = ""
+    def __init__(self):
+        self.message = ""
+        self.message_box = None
 
     def on_llm_start(self, *args, **kwargs):
         self.message_box = st.empty()
 
     def on_llm_end(self, *args, **kwargs):
         save_message(self.message, "ai")
+        self.message = ""  # Reset the message after saving
 
     def on_llm_new_token(self, token, *args, **kwargs):
         self.message += token
-        self.message_box.markdown(self.message)
+        if self.message_box:
+            self.message_box.markdown(self.message)
 
 
 @st.cache_resource
@@ -50,7 +54,6 @@ def get_openai_model(api_key):
 
 @st.cache_data(show_spinner="Embedding File...")
 def embed_file(file, api_key):
-    # 캐시 디렉토리 생성
     cache_dir = "./.cache"
     files_dir = os.path.join(cache_dir, "files")
     embeddings_dir = os.path.join(cache_dir, "embeddings")
@@ -89,7 +92,10 @@ def save_message(message, role):
 
 def send_message(message, role, save=True):
     with st.chat_message(role):
-        st.markdown(message)
+        if role == "ai":
+            st.empty().markdown(message)
+        else:
+            st.markdown(message)
     if save:
         save_message(message, role)
 
@@ -160,7 +166,9 @@ if api_key:
                         "question": RunnablePassthrough(),
                     } | prompt | llm)
                     with st.chat_message("ai"):
-                        chain.invoke(message)
+                        response = chain.invoke(message)
+                        st.session_state["messages"].append(
+                            {"message": response, "role": "ai"})
             except Exception as e:
                 st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
                 logging.error(
