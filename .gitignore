@@ -1,0 +1,19 @@
+# Virtual Environment
+venv/
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# OS generated files
+.DS_Store
+
+# IDE specific files (예: VSCode, PyCharm 등)
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Local configuration files
+*.cfg
