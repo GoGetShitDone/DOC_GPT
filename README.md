@@ -64,26 +64,28 @@ Document GPT는 Streamlit을 이용해 만든 대화형 문서 분석 애플리�
 ## 목차
 1. [개요](#개요)
 2. [라이브러리 임포트](#라이브러리-임포트)
-3. [Streamlit 페이지 설정](#streamlit-페이지-설정)
-4. [ChatCallbackHandler 클래스](#chatcallbackhandler-클래스)
-5. [OpenAI 모델 초기화](#openai-모델-초기화)
-6. [파일 임베딩](#파일-임베딩)
-7. [메시지 관리 함수](#메시지-관리-함수)
-8. [프롬프트 템플릿](#프롬프트-템플릿)
-9. [API 키 검증](#api-키-검증)
-10. [메인 UI 구성](#메인-ui-구성)
-11. [메인 로직](#메인-로직)
-12. [결론](#결론)
+3. [로깅 설정](#로깅-설정)
+4. [Streamlit 페이지 설정](#streamlit-페이지-설정)
+5. [ChatCallbackHandler 클래스](#chatcallbackhandler-클래스)
+6. [OpenAI 모델 초기화](#openai-모델-초기화)
+7. [파일 임베딩](#파일-임베딩)
+8. [메시지 관리 함수](#메시지-관리-함수)
+9. [프롬프트 템플릿](#프롬프트-템플릿)
+10. [API 키 검증](#api-키-검증)
+11. [메인 UI 구성](#메인-ui-구성)
+12. [메인 로직](#메인-로직)
+13. [결론](#결론)
 
 ## 개요
 
-이 코드는 Streamlit을 사용하여 만든 "Document GPT"라는 웹 애플리케이션입니다. 이 애플리케이션은 사용자가 문서를 업로드하고 해당 문서에 대해 질문을 할 수 있게 해주며, OpenAI의 API를 활용하여 문서 내용을 바탕으로 답변을 제공합니다.
+이 코드는 Streamlit을 사용하여 만든 "Document GPT" 웹 애플리케이션입니다. 사용자가 문서를 업로드하고 해당 문서에 대해 질문할 수 있으며, OpenAI의 API를 활용하여 문서 내용을 바탕으로 답변을 제공합니다.
 
 ## 라이브러리 임포트
 
 ```python
 import os
 import requests
+import logging
 from langchain.prompts import ChatPromptTemplate
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import CacheBackedEmbeddings, OpenAIEmbeddings
@@ -96,10 +98,22 @@ from langchain.callbacks.base import BaseCallbackHandler
 import streamlit as st
 ```
 
-이 섹션에서는 필요한 라이브러리들을 임포트합니다. 주요 라이브러리로는:
+주요 라이브러리:
 - Streamlit: 웹 애플리케이션 구축
-- LangChain: AI 모델을 쉽게 활용할 수 있게 해주는 프레임워크
-- Requests: HTTP 요청을 위한 라이브러리
+- LangChain: AI 모델 활용을 위한 프레임워크
+- Requests: HTTP 요청 처리
+- Logging: 로그 기록
+
+## 로깅 설정
+
+```python
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(message)s',
+)
+```
+
+애플리케이션의 로그를 INFO 레벨로 설정하고, 로그 형식을 지정합니다.
 
 ## Streamlit 페이지 설정
 
@@ -111,10 +125,7 @@ st.set_page_config(
 )
 ```
 
-Streamlit 애플리케이션의 기본 설정을 정의합니다:
-- 페이지 제목: "Document GPT"
-- 페이지 아이콘: 📄 (문서 이모지)
-- 레이아웃: "wide" (전체 화면 너비 사용)
+Streamlit 애플리케이션의 기본 설정을 정의합니다.
 
 ## ChatCallbackHandler 클래스
 
@@ -133,10 +144,7 @@ class ChatCallbackHandler(BaseCallbackHandler):
         self.message_box.markdown(self.message)
 ```
 
-이 클래스는 OpenAI의 스트리밍 응답을 실시간으로 화면에 표시하기 위한 콜백 핸들러입니다:
-- `on_llm_start`: 응답 시작 시 빈 메시지 박스 생성
-- `on_llm_end`: 응답 완료 시 메시지 저장
-- `on_llm_new_token`: 새 토큰 수신 시 메시지 박스 업데이트
+OpenAI의 스트리밍 응답을 실시간으로 화면에 표시하기 위한 콜백 핸들러입니다.
 
 ## OpenAI 모델 초기화
 
@@ -151,30 +159,31 @@ def get_openai_model(api_key):
     )
 ```
 
-이 함수는 OpenAI 모델을 초기화합니다:
-- `@st.cache_resource`: 리소스 캐싱을 위한 Streamlit 데코레이터
-- Temperature 0.1: 낮은 무작위성
-- Streaming: 실시간 응답을 위한 스트리밍 활성화
-- Callbacks: 실시간 응답 표시를 위한 콜백 핸들러 사용
+OpenAI 모델을 초기화하고 캐싱합니다.
 
 ## 파일 임베딩
 
 ```python
 @st.cache_data(show_spinner="Embedding File...")
 def embed_file(file, api_key):
-    # ... (파일 읽기 및 저장)
-    # ... (텍스트 분할)
-    # ... (임베딩 생성)
-    # ... (벡터 저장소 생성)
+    # 캐시 디렉토리 생성
+    cache_dir = "./.cache"
+    files_dir = os.path.join(cache_dir, "files")
+    embeddings_dir = os.path.join(cache_dir, "embeddings")
+
+    for dir_path in [cache_dir, files_dir, embeddings_dir]:
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+            logging.info(f"Created directory: {dir_path}")
+
+    file_path = os.path.join(files_dir, file.name)
+    logging.info(f'file_path: {file_path}')
+
+    # ... (파일 읽기, 텍스트 분할, 임베딩 생성 등)
     return retriever
 ```
 
-이 함수는 업로드된 파일을 처리하고 임베딩합니다:
-- 파일 읽기 및 로컬 저장
-- 텍스트 분할
-- OpenAI 임베딩 생성
-- FAISS 벡터 저장소 생성
-- 검색기(retriever) 반환
+업로드된 파일을 처리하고 임베딩합니다. 캐시 디렉토리를 생성하고 관리합니다.
 
 ## 메시지 관리 함수
 
@@ -193,10 +202,7 @@ def paint_history():
         send_message(message["message"], message["role"], save=False)
 ```
 
-이 함수들은 채팅 히스토리를 관리합니다:
-- `save_message`: 메시지를 세션 상태에 저장
-- `send_message`: 메시지를 화면에 표시하고 선택적으로 저장
-- `paint_history`: 저장된 모든 메시지를 화면에 다시 표시
+채팅 히스토리를 관리하는 함수들입니다.
 
 ## 프롬프트 템플릿
 
@@ -216,9 +222,7 @@ prompt = ChatPromptTemplate.from_messages(
 )
 ```
 
-이 템플릿은 AI에게 전달할 프롬프트의 구조를 정의합니다:
-- 시스템 메시지: AI에게 주어진 컨텍스트만 사용하여 답변하도록 지시
-- 인간 메시지: 사용자의 질문을 포함
+AI에게 전달할 프롬프트의 구조를 정의합니다.
 
 ## API 키 검증
 
@@ -236,9 +240,7 @@ def is_valid_api_key(api_key):
         return False
 ```
 
-이 함수는 제공된 OpenAI API 키의 유효성을 검사합니다:
-- OpenAI API에 요청을 보내 응답 상태 코드 확인
-- 예외 처리를 통한 안정성 확보
+제공된 OpenAI API 키의 유효성을 검사합니다.
 
 ## 메인 UI 구성
 
@@ -254,10 +256,7 @@ with st.sidebar:
                             "pdf", "txt", "docx", "md"])
 ```
 
-메인 UI 구성:
-- 애플리케이션 제목
-- 사용 안내 메시지
-- 사이드바: API 키 입력 필드와 파일 업로더
+애플리케이션의 메인 UI를 구성합니다.
 
 ## 메인 로직
 
@@ -268,19 +267,23 @@ if api_key:
         st.success("API 키가 유효합니다.")
 
         if file:
-            retriever = embed_file(file, api_key)
-            llm = get_openai_model(api_key)
-            send_message("Good! Ask Anything!", "ai", save=False)
-            paint_history()
-            message = st.chat_input("Ask Anything! about your file...")
-            if message:
-                send_message(message, "human")
-                chain = ({
-                    "context": retriever | RunnableLambda(format_docs),
-                    "question": RunnablePassthrough(),
-                } | prompt | llm)
-                with st.chat_message("ai"):
-                    chain.invoke(message)
+            try:
+                retriever = embed_file(file, api_key)
+                llm = get_openai_model(api_key)
+                send_message("Good! Ask Anything!", "ai", save=False)
+                paint_history()
+                message = st.chat_input("Ask Anything! about your file...")
+                if message:
+                    send_message(message, "human")
+                    chain = ({
+                        "context": retriever | RunnableLambda(format_docs),
+                        "question": RunnablePassthrough(),
+                    } | prompt | llm)
+                    with st.chat_message("ai"):
+                        chain.invoke(message)
+            except Exception as e:
+                st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
+                logging.error(f"Error processing file: {str(e)}", exc_info=True)
         else:
             st.warning("Please upload a file in the sidebar.")
     else:
@@ -289,13 +292,13 @@ elif not api_key:
     st.warning("Please enter your OpenAI API key in the sidebar.")
 ```
 
-메인 로직:
+애플리케이션의 주요 로직을 구현합니다:
 1. API 키 유효성 검사
-2. 파일 업로드 확인
-3. 파일 임베딩 및 OpenAI 모델 초기화
-4. 사용자 입력 처리
-5. AI 응답 생성 및 표시
+2. 파일 업로드 및 처리
+3. 사용자 입력 처리
+4. AI 응답 생성 및 표시
+5. 오류 처리 및 로깅
 
 ## 결론
 
-이 Document GPT 애플리케이션은 Streamlit과 LangChain을 활용하여 복잡한 AI 기능을 간단한 웹 인터페이스로 구현했습니다. 주요 특징으로는 실시간 응답, 문서 기반 질문답변, API 키 보안, 그리고 효율적인 파일 처리가 있습니다. 이 애플리케이션은 사용자 친화적인 인터페이스와 강력한 AI 기능을 결합하여 문서 분석 및 정보 추출 작업을 효과적으로 수행할 수 있게 해줍니다.
+이 Document GPT 애플리케이션은 Streamlit과 LangChain을 활용하여 복잡한 AI 기능을 간단한 웹 인터페이스로 구현했습니다. 주요 특징으로는 실시간 응답, 문서 기반 질문답변, API 키 보안, 효율적인 파일 처리, 그리고 향상된 오류 처리 및 로깅이 있습니다. 이 애플리케이션은 사용자 친화적인 인터페이스와 강력한 AI 기능을 결합하여 문서 분석 및 정보 추출 작업을 효과적으로 수행할 수 있게 해줍니다.

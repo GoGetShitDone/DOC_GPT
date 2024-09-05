@@ -50,15 +50,14 @@ def main():
                     ├── pages
                     │   └── Document_gpt.py
                     └── requirements.txt
-                    # Document GPT
+                    
             """)
-    elif app_mode == "Source code":  # Changed to match the selectbox option
+    elif app_mode == "Source code":  # selectbox를 활용해서 코드 보는 화면으로 전환
         st.markdown("## Source CODE")
         file_path = os.path.join("pages", "Document_gpt.py")
         content = get_file_content_as_string(file_path)
         st.code(content)
 
-        # If there's an error, it will be displayed as text
         if content.startswith("Error"):
             st.error(content)
 

@@ -1,5 +1,6 @@
 import os
 import requests
+import logging
 from langchain.prompts import ChatPromptTemplate
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import CacheBackedEmbeddings, OpenAIEmbeddings
@@ -10,6 +11,11 @@ from langchain.vectorstores.faiss import FAISS
 from langchain.chat_models import ChatOpenAI
 from langchain.callbacks.base import BaseCallbackHandler
 import streamlit as st
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(message)s',
+)
 
 st.set_page_config(
     page_title="Document GPT",
@@ -44,11 +50,24 @@ def get_openai_model(api_key):
 
 @st.cache_data(show_spinner="Embedding File...")
 def embed_file(file, api_key):
+    # 캐시 디렉토리 생성
+    cache_dir = "./.cache"
+    files_dir = os.path.join(cache_dir, "files")
+    embeddings_dir = os.path.join(cache_dir, "embeddings")
+
+    for dir_path in [cache_dir, files_dir, embeddings_dir]:
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+            logging.info(f"Created directory: {dir_path}")
+
+    file_path = os.path.join(files_dir, file.name)
+    logging.info(f'file_path: {file_path}')
+
     file_content = file.read()
-    file_path = f"./.cache/files/{file.name}"
     with open(file_path, "wb") as f:
         f.write(file_content)
-    cache_dir = LocalFileStore(f"./.cache/embeddings/{file.name}")
+
+    embeddings_store = LocalFileStore(os.path.join(embeddings_dir, file.name))
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
         chunk_size=600,
@@ -58,7 +77,7 @@ def embed_file(file, api_key):
     docs = loader.load_and_split(text_splitter=splitter)
     embeddings = OpenAIEmbeddings(openai_api_key=api_key)
     cached_embeddings = CacheBackedEmbeddings.from_bytes_store(
-        embeddings, cache_dir)
+        embeddings, embeddings_store)
     vectorstore = FAISS.from_documents(docs, cached_embeddings)
     retriever = vectorstore.as_retriever()
     return retriever
@@ -128,19 +147,24 @@ if api_key:
         st.success("API 키가 유효합니다.")
 
         if file:
-            retriever = embed_file(file, api_key)
-            llm = get_openai_model(api_key)
-            send_message("Good! Ask Anything!", "ai", save=False)
-            paint_history()
-            message = st.chat_input("Ask Anything! about your file...")
-            if message:
-                send_message(message, "human")
-                chain = ({
-                    "context": retriever | RunnableLambda(format_docs),
-                    "question": RunnablePassthrough(),
-                } | prompt | llm)
-                with st.chat_message("ai"):
-                    chain.invoke(message)
+            try:
+                retriever = embed_file(file, api_key)
+                llm = get_openai_model(api_key)
+                send_message("Good! Ask Anything!", "ai", save=False)
+                paint_history()
+                message = st.chat_input("Ask Anything! about your file...")
+                if message:
+                    send_message(message, "human")
+                    chain = ({
+                        "context": retriever | RunnableLambda(format_docs),
+                        "question": RunnablePassthrough(),
+                    } | prompt | llm)
+                    with st.chat_message("ai"):
+                        chain.invoke(message)
+            except Exception as e:
+                st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
+                logging.error(
+                    f"Error processing file: {str(e)}", exc_info=True)
         else:
             st.warning("Please upload a file in the sidebar.")
     else:
