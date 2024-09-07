@@ -74,7 +74,7 @@ def main():
         display_code_tab("Quiz GPT CODE", "Quiz_gpt.py")
 
     with st.sidebar:
-        st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🐻Ullala GitHub</button></a>', unsafe_allow_html=True)
+        st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🐻 Ullala GitHub</button></a>', unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
