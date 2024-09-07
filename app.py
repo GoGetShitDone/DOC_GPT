@@ -31,7 +31,7 @@ st.set_page_config(
 
 
 def main():
-    st.title("📄 Document GPT")
+    st.title("🐻 Ullala GPT")
 
     tab1, tab2, tab3 = st.tabs(
         ["README", "DOCUMENT GPT CODE", "QUIZ GPT CODE"])
