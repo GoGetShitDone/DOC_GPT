@@ -14,6 +14,15 @@ def get_file_content_as_string(file_path):
         return f"Error reading file: {str(e)}"
 
 
+def display_code_tab(title, file_name):
+    st.markdown(f"##{title}")
+    file_path = os.path.join("pages", file_name)
+    content = get_file_content_as_string(file_path)
+    st.code(content)
+    if content.startswith("Error"):
+        st.error(content)
+
+
 st.set_page_config(
     page_title="DOC GPT",
     page_icon="📄",
@@ -24,42 +33,48 @@ st.set_page_config(
 def main():
     st.title("📄 Document GPT")
 
+    tab1, tab2, tab3 = st.tabs(
+        ["README", "DOCUMENT GPT CODE", "QUIZ GPT CODE"])
+
+    with tab1:
+        st.markdown("""
+                        ## README
+                        업로드한 문서를 기반으로 AI에게 질문하고 답변을 받을 수 있으며, 자료 기반 퀴즈 생성이 가능합니다.
+                            \n
+                            1. app 페이지
+                                - 기본 안내사항을 받을 수 있습니다. 
+                                - 페이지 내 탭을 통해 Source Code를 확인할 수 있습니다. 
+                            \n
+                            2. Document 페이지
+                                - API 키를 입력하고 유효성 검증합니다. 
+                                - 문서를 첨부하고 문서를 바탕으로 AI에게 질문하고 답변받을 수 있습니다. 
+                                - 첨부 문서는 .txt, .pdf, .docx, .md 파일을 지원합니다. 
+                            \n
+                            3. Quiz GPT 페이지
+                                - OpenAI API 키 입력 및 유효성 검증
+                                - WIKI 또는 파일 업로드 선택 가능 
+                                - WIKI 선택 시 키워드 검색을 통해 키워드 관련 퀴즈 제공 
+                                - 파일 업로드 선택 시 업로드 문서(.txt, .pdf, .docx, .md 파일 지원)에 따른 퀴즈 제공
+                            \n
+                            4. 파일 구조 
+                                .
+                                ├── .gitignore
+                                ├── app.py
+                                ├── pages
+                                │   └── Document_gpt.py
+                                │   ├── Quiz_gpt.py
+                                └── requirements.txt
+                                
+                        """)
+
+    with tab2:
+        display_code_tab("Document GPT CODE", "Document_gpt.py")
+
+    with tab3:
+        display_code_tab("Quiz GPT CODE", "Quiz_gpt.py")
+
     with st.sidebar:
         st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">GitHub</button></a>', unsafe_allow_html=True)
-        app_mode = st.selectbox("Choose the app mode",
-                                ["Home", "Source code"])
-
-    if app_mode == "Home":
-        st.markdown("""
-            ## 🍀 README 🍀
-            Document GPT는 대화형 문서 분석 애플리케이션입니다. 업로드한 문서를 기반으로 AI에게 질문하고 답변을 받을 수 있습니다.
-                \n
-                1. app 페이지
-                    - 기본 안내사항을 받을 수 있습니다. 
-                    - 옵션에서 Source Code 를 선택해서 코드를 확인할 수 있습니다. 
-                \n
-                2. Document 페이지
-                    - API 키를 입력하고 유효성 검증합니다. 
-                    - 문서를 첨부하고 문서를 바탕으로 AI에게 질문하고 답변받을 수 있습니다. 
-                    - 첨부 문서는 .txt, .pdf, .docx, .md 파일을 지원합니다. 
-                \n
-                3. 기타: 파일 구조 
-                    .
-                    ├── .gitignore
-                    ├── app.py
-                    ├── pages
-                    │   └── Document_gpt.py
-                    └── requirements.txt
-                    
-            """)
-    elif app_mode == "Source code":  # selectbox를 활용해서 코드 보는 화면으로 전환
-        st.markdown("## Source CODE")
-        file_path = os.path.join("pages", "Document_gpt.py")
-        content = get_file_content_as_string(file_path)
-        st.code(content)
-
-        if content.startswith("Error"):
-            st.error(content)
 
 
 if __name__ == "__main__":
