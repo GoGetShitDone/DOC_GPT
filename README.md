@@ -16,7 +16,7 @@ Document GPT는 Streamlit을 이용해 만든 대화형 문서 분석 애플리�
 3. **Quiz GPT 페이지**
    - OpenAI API 키 입력 및 유효성 검증
    - WIKI 또는 파일 업로드 선택 가능 
-   - WIKI 선택 시 키워드 검색을 통해 키워드 관련 퀴즈 제공 
+   - WIKI 선택 시 키워드 검색을 통해 키워드 관련 퀴즈 제공(난이도 선택 가능)
    - 파일 업로드 선택 시 업로드 문서(.txt, .pdf, .docx, .md 파일 지원)에 따른 퀴즈 제공
 
 ## 설치 및 실행
@@ -54,12 +54,6 @@ Document GPT는 Streamlit을 이용해 만든 대화형 문서 분석 애플리�
 - `pages/Document_gpt.py`: Document GPT 기능을 구현한 페이지
 - `pages/Quiz_gpt.py`: 첨부문서 또는 위키의 키워드 관련 퀴즈를 제공하는 페이지
 - `requirements.txt`: 프로젝트 의존성 목록
-
-## 사용 방법
-
-1. OpenAI API 키를 사이드바에 입력합니다.
-2. 분석하고자 하는 문서 파일을 업로드합니다.
-3. 문서에 대해 질문을 입력하면 AI가 답변을 제공합니다.
 
 ## 주의사항
 
@@ -359,64 +353,66 @@ if "messages" not in st.session_state:
 ---
 ---
 
-# 첨부자료 02 : Quiz_gpt.py 코드 설명
+# 첨부 02 : Quiz GPT 코드
 
 ## 목차
 1. [개요](#개요)
-2. [라이브러리 임포트](#라이브러리-임포트)
-3. [로깅 설정](#로깅-설정)
-4. [JsonOutputParser 클래스](#jsonoutputparser-클래스)
-5. [Streamlit 페이지 설정](#streamlit-페이지-설정)
-6. [API 키 검증](#api-키-검증)
-7. [OpenAI 모델 초기화](#openai-모델-초기화)
-8. [문서 포맷팅](#문서-포맷팅)
-9. [퀴즈 생성 체인](#퀴즈-생성-체인)
-10. [위키피디아 검색](#위키피디아-검색)
-11. [파일 분할 및 로딩](#파일-분할-및-로딩)
-12. [프롬프트 템플릿](#프롬프트-템플릿)
-13. [메인 UI 구성](#메인-ui-구성)
-14. [메인 로직](#메인-로직)
-15. [결론](#결론)
+2. [환경 설정 및 라이브러리](#환경-설정-및-라이브러리)
+3. [유틸리티 클래스 및 함수](#유틸리티-클래스-및-함수)
+4. [OpenAI 모델 구성](#openai-모델-구성)
+5. [문서 처리 기능](#문서-처리-기능)
+6. [위키피디아 통합](#위키피디아-통합)
+7. [퀴즈 생성 엔진](#퀴즈-생성-엔진)
+8. [프롬프트 엔지니어링](#프롬프트-엔지니어링)
+9. [사용자 인터페이스 설계](#사용자-인터페이스-설계)
+10. [메인 애플리케이션 로직](#메인-애플리케이션-로직)
+11. [오류 처리 및 로깅](#오류-처리-및-로깅)
+12. [성능 최적화](#성능-최적화)
+13. [결론 및 향후 개선 사항](#결론-및-향후-개선-사항)
 
-## 개요
+## 1. 개요
 
-이 코드는 Streamlit을 사용하여 만든 "Quiz GPT" 웹 애플리케이션입니다. 사용자가 위키피디아 주제를 검색하거나 파일을 업로드하면, OpenAI의 API를 활용하여 해당 내용에 대한 퀴즈를 생성합니다.
+Quiz GPT는 Streamlit을 기반으로 한 대화형 웹 애플리케이션으로, OpenAI의 GPT-4 모델을 활용하여 동적으로 퀴즈를 생성합니다. 사용자는 위키피디아 주제를 검색하거나 직접 파일을 업로드하여 다양한 주제에 대한 퀴즈를 만들 수 있습니다. 이 애플리케이션은 교육 목적 및 엔터테인먼트용으로 설계되었으며, 사용자 지정 난이도 설정을 지원합니다.
 
-## 라이브러리 임포트
+## 2. 환경 설정 및 라이브러리
 
 ```python
 import json
 import os
 import requests
 import logging
+import wikipedia
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.callbacks import StreamingStdOutCallbackHandler
 import streamlit as st
-from langchain.retrievers import WikipediaRetriever
-from langchain.schema import BaseOutputParser, output_parser, Document
+from langchain.schema import BaseOutputParser, Document
+
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
 ```
 
-주요 라이브러리:
-- Streamlit: 웹 애플리케이션 구축
-- LangChain: AI 모델 활용을 위한 프레임워크
-- Requests: HTTP 요청 처리
-- Logging: 로그 기록
+이 섹션에서는 애플리케이션에 필요한 모든 라이브러리를 임포트합니다:
 
-## 로깅 설정
+- `json`: JSON 데이터 처리를 위해 사용됩니다.
+- `os`: 운영 체제 관련 기능(예: 파일 경로 조작)에 사용됩니다.
+- `requests`: HTTP 요청을 보내기 위해 사용됩니다(API 키 검증 등).
+- `logging`: 애플리케이션 로깅을 위해 사용됩니다.
+- `wikipedia`: 위키피디아 API와 상호 작용하기 위해 사용됩니다.
+- LangChain 관련 임포트:
+  - `UnstructuredFileLoader`: 다양한 형식의 파일을 로드하기 위해 사용됩니다.
+  - `CharacterTextSplitter`: 긴 텍스트를 관리 가능한 청크로 분할하기 위해 사용됩니다.
+  - `ChatOpenAI`: OpenAI의 채팅 모델과 상호 작용하기 위해 사용됩니다.
+  - `ChatPromptTemplate`: 구조화된 프롬프트를 생성하기 위해 사용됩니다.
+  - `StreamingStdOutCallbackHandler`: 스트리밍 응답을 처리하기 위해 사용됩니다.
+- `streamlit`: 웹 인터페이스를 구축하기 위해 사용됩니다.
 
-```python
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(levelname)s] %(message)s',
-)
-```
+로깅 설정은 INFO 레벨로 구성되어 있어, 중요한 이벤트와 오류를 콘솔에 출력합니다.
 
-애플리케이션의 로그를 INFO 레벨로 설정하고, 로그 형식을 지정합니다.
+## 3. 유틸리티 클래스 및 함수
 
-## JsonOutputParser 클래스
+### JsonOutputParser 클래스
 
 ```python
 class JsonOutputParser(BaseOutputParser):
@@ -427,23 +423,13 @@ class JsonOutputParser(BaseOutputParser):
 output_parser = JsonOutputParser()
 ```
 
-AI 모델의 출력을 JSON 형식으로 파싱하는 클래스입니다. 코드 블록 표시와 'json' 키워드를 제거한 후 JSON으로 파싱합니다.
+이 클래스는 LangChain의 `BaseOutputParser`를 상속받아 구현되었습니다:
+- `parse` 메서드는 AI 모델의 출력을 정제하고 JSON으로 파싱합니다.
+- 코드 블록 구분자(`"""`)와 'json' 키워드를 제거하여 순수한 JSON 문자열만 남깁니다.
+- `json.loads()`를 사용하여 문자열을 Python 딕셔너리로 변환합니다.
+- 이 파서는 AI 모델의 구조화된 출력을 애플리케이션에서 쉽게 사용할 수 있는 형태로 변환하는 데 중요한 역할을 합니다.
 
-## Streamlit 페이지 설정
-
-```python
-st.set_page_config(
-    page_title="Quiz GPT",
-    page_icon="🕹️",
-    layout="wide",
-)
-
-st.title("🕹️ Quiz GPT")
-```
-
-Streamlit 애플리케이션의 기본 설정과 제목을 정의합니다.
-
-## API 키 검증
+### API 키 검증 함수
 
 ```python
 def is_valid_api_key(api_key):
@@ -459,91 +445,48 @@ def is_valid_api_key(api_key):
         return False
 ```
 
-제공된 OpenAI API 키의 유효성을 검사합니다. OpenAI의 모델 리스트 엔드포인트를 호출하여 확인합니다.
+이 함수는 사용자가 입력한 OpenAI API 키의 유효성을 검사합니다:
+- OpenAI API의 '/v1/models' 엔드포인트에 GET 요청을 보냅니다.
+- 유효한 API 키의 경우 200 상태 코드를 반환합니다.
+- 네트워크 오류나 잘못된 API 키의 경우 False를 반환합니다.
+- 이 검증 과정은 사용자 경험을 향상시키고, 잘못된 API 키로 인한 오류를 방지합니다.
 
-## OpenAI 모델 초기화
+## 4. OpenAI 모델 구성
 
 ```python
 @st.cache_resource
 def get_openai_model(api_key):
     return ChatOpenAI(
         temperature=0.1,
-        model="gpt-4o-mini",
+        model="gpt-4-0613",
         streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
         openai_api_key=api_key,
     )
 ```
 
-OpenAI 모델을 초기화하고 캐싱합니다. 스트리밍 모드를 사용하여 실시간 응답을 가능하게 합니다.
+이 함수는 OpenAI의 GPT-4 모델을 초기화하고 구성합니다:
+- `@st.cache_resource` 데코레이터를 사용하여 모델 인스턴스를 캐시합니다. 이는 반복적인 모델 초기화를 방지하여 성능을 향상시킵니다.
+- `temperature=0.1`: 낮은 temperature 값을 설정하여 모델의 출력을 더 결정적이고 일관되게 만듭니다.
+- `model="gpt-4-0613"`: GPT-4 모델의 특정 버전을 지정합니다.
+- `streaming=True`: 스트리밍 모드를 활성화하여 실시간으로 응답을 받습니다.
+- `callbacks=[StreamingStdOutCallbackHandler()]`: 스트리밍 응답을 표준 출력으로 처리합니다.
+- 사용자의 API 키를 모델 구성에 포함시킵니다.
 
-## 문서 포맷팅
-
-```python
-def format_docs(docs):
-    if isinstance(docs, list):
-        if all(isinstance(doc, dict) and "page_content" in doc for doc in docs):
-            return "\n\n".join(doc["page_content"] for doc in docs)
-        elif all(isinstance(doc, str) for doc in docs):
-            return "\n\n".join(docs)
-        elif all(hasattr(doc, 'page_content') for doc in docs):
-            return "\n\n".join(doc.page_content for doc in docs)
-    elif isinstance(docs, str):
-        return docs
-    else:
-        raise ValueError("Unsupported document format")
-```
-
-다양한 형식의 문서를 일관된 문자열 형식으로 변환합니다.
-
-## 퀴즈 생성 체인
+## 5. 문서 처리 기능
 
 ```python
-@st.cache_data(show_spinner="Making Quiz...")
-def run_quiz_chain(_docs, topic, _llm):
-    if not isinstance(_docs, list) or len(_docs) == 0:
-        return {"questions": []}
-
-    formatted_docs = format_docs(_docs)
-
-    questions_chain = {
-        "context": lambda x: formatted_docs} | questions_prompt | _llm
-    formatting_chain = formatting_prompt | _llm
-    chain = {"context": questions_chain} | formatting_chain | output_parser
-    return chain.invoke(formatted_docs)
-```
-
-문서 내용을 바탕으로 퀴즈를 생성하는 함수입니다. LangChain의 체인 개념을 사용하여 질문 생성과 포맷팅을 순차적으로 수행합니다.
-
-## 위키피디아 검색
-
-```python
-@st.cache_data(show_spinner="Searching Wikipedia...")
-def wiki_search(term):
-    retriever = WikipediaRetriever(top_k_results=1, lang="en")
-    docs = retriever.get_relevant_documents(term)
-
-    if docs and isinstance(docs[0], Document):
-        return [{"page_content": doc.page_content, "metadata": doc.metadata} for doc in docs]
-    return docs
-```
-
-위키피디아에서 주어진 주제에 대한 정보를 검색하고 반환합니다.
-
-## 파일 분할 및 로딩
-
-```python
-@st.cache_data(show_spinner="Loading file...")
+@st.cache_data(show_spinner="파일 로딩 중...")
 def split_file(file):
     file_content = file.read()
     cache_dir = "./.cache/quiz_files"
     if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
-        logging.info(f"Created directory: {cache_dir}")
+        logging.info(f"디렉토리 생성: {cache_dir}")
     file_path = os.path.join(cache_dir, file.name)
     with open(file_path, "wb") as f:
         f.write(file_content)
-    logging.info(f"File saved: {file_path}")
+    logging.info(f"파일 저장: {file_path}")
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
         chunk_size=600,
@@ -554,72 +497,71 @@ def split_file(file):
     return docs
 ```
 
-업로드된 파일을 읽고, 캐시에 저장한 후, 내용을 적절한 크기의 청크로 분할합니다.
+이 함수는 업로드된 파일을 처리하고 분할합니다:
+- `@st.cache_data` 데코레이터를 사용하여 처리 결과를 캐시합니다. 이는 동일한 파일에 대한 중복 처리를 방지합니다.
+- 업로드된 파일을 로컬 캐시 디렉토리에 저장합니다.
+- `CharacterTextSplitter`를 사용하여 문서를 관리 가능한 청크로 분할합니다:
+  - `chunk_size=600`: 각 청크의 최대 크기를 600자로 설정합니다.
+  - `chunk_overlap=100`: 청크 간 100자 오버랩을 허용하여 컨텍스트 유지를 보장합니다.
+- `UnstructuredFileLoader`를 사용하여 다양한 파일 형식(.docx, .txt, .pdf, .md)을 지원합니다.
+- 분할된 문서 청크를 반환합니다.
 
-## 프롬프트 템플릿
-
-```python
-questions_prompt = ChatPromptTemplate.from_messages([...])
-formatting_prompt = ChatPromptTemplate.from_messages([...])
-```
-
-AI에게 전달할 프롬프트의 구조를 정의합니다. `questions_prompt`는 퀴즈 질문을 생성하기 위한 것이고, `formatting_prompt`는 생성된 질문을 JSON 형식으로 포맷팅하기 위한 것입니다.
-
-## 메인 UI 구성
+## 6. 위키피디아 통합
 
 ```python
-with st.sidebar:
-    api_key = st.text_input("OpenAI API Key", type="password")
-    docs = None
-    topic = None
-    choice = st.selectbox(
-        "Choose what you want to use.",
-        ("Wikipedia Article", "File",),
-    )
-    # ... (API 키 검증 및 소스 선택 로직)
-```
-
-사이드바에 API 키 입력, 소스 선택(위키피디아 또는 파일 업로드) 옵션을 제공합니다.
-
-## 메인 로직
-
-```python
-if not docs:
-    st.markdown(
-        "Welcome to Quiz GPT. Please enter your API key and choose a source in the sidebar.")
-elif api_key and is_valid_api_key(api_key):
+@st.cache_data(show_spinner="위키피디아 검색 중...")
+def wiki_search(term):
     try:
-        response = run_quiz_chain(
-            docs, topic if topic else file.name, _llm=llm)
-        if "questions" in response and len(response["questions"]) > 0:
-            with st.form("questions_form"):
-                for question in response["questions"]:
-                    st.write(question["question"])
-                    value = st.radio(
-                        "Select an option.", [answer["answer"]
-                                              for answer in question["answers"]],
-                        index=None,
-                    )
-                    if {"answer": value, "correct": True} in question["answers"]:
-                        st.success("Correct!")
-                    elif value is not None:
-                        st.error("Wrong!")
-                button = st.form_submit_button()
-        else:
-            st.error(
-                "No questions were generated. Please try a different topic or source.")
+        try:
+            page = wikipedia.page(term)
+            return [{"page_content": page.content, "metadata": {"title": page.title}}]
+        except wikipedia.exceptions.DisambiguationError as e:
+            page = wikipedia.page(e.options[0])
+            return [{"page_content": page.content, "metadata": {"title": page.title}}]
+        except wikipedia.exceptions.PageError:
+            search_results = wikipedia.search(term, results=1)
+            if not search_results:
+                return []
+            page = wikipedia.page(search_results[0])
+            return [{"page_content": page.content, "metadata": {"title": page.title}}]
     except Exception as e:
-        st.error(f"An error occurred while generating the quiz: {str(e)}")
-        logging.error(f"Error in run_quiz_chain: {str(e)}", exc_info=True)
+        st.error(f"위키피디아 검색 중 오류 발생: {str(e)}")
+        return []
 ```
 
-애플리케이션의 주요 로직을 구현합니다:
-1. API 키 유효성 검사
-2. 문서 소스에 따른 처리 (위키피디아 검색 또는 파일 업로드)
-3. 퀴즈 생성
-4. 생성된 퀴즈 표시 및 사용자 응답 처리
-5. 오류 처리 및 로깅
+이 함수는 위키피디아 API를 사용하여 주제를 검색합니다:
+- `@st.cache_data` 데코레이터를 사용하여 검색 결과를 캐시합니다. 이는 동일한 검색어에 대한 반복적인 API 호출을 방지합니다.
+- 검색 프로세스는 여러 단계로 구성됩니다:
+  1. 정확한 제목 매치 시도
+  2. 모호성 해결 (DisambiguationError 처리)
+  3. 검색 결과가 없을 경우 유사한 페이지 검색
+- 각 단계에서 예외를 처리하여 견고성을 보장합니다.
+- 검색 결과를 표준화된 형식 (페이지 내용과 메타데이터)으로 반환합니다.
 
-## 결론
+## 7. 퀴즈 생성 엔진
 
-이 Quiz GPT 애플리케이션은 Streamlit과 LangChain을 활용하여 동적인 퀴즈 생성 기능을 구현했습니다. 주요 특징으로는 위키피디아 검색 기능, 파일 업로드 지원, OpenAI API를 활용한 퀴즈 생성, 사용자 친화적인 인터페이스 등이 있습니다. 이 애플리케이션은 교육 목적이나 재미를 위한 퀴즈 생성에 효과적으로 사용될 수 있으며, 다양한 소스로부터 지식을 테스트할 수 있는 유연한 플랫폼을 제공합니다.
+```python
+@st.cache_data(show_spinner="퀴즈 만드는 중...")
+def run_quiz_chain(_docs, topic, _llm, difficulty):
+    if not isinstance(_docs, list) or len(_docs) == 0:
+        return {"questions": []}
+
+    formatted_docs = format_docs(_docs)
+
+    questions_chain = {
+        "context": lambda x: formatted_docs,
+        "difficulty": lambda x: difficulty
+    } | questions_prompt | _llm
+    formatting_chain = formatting_prompt | _llm
+    chain = {"context": questions_chain} | formatting_chain | output_parser
+    return chain.invoke(formatted_docs)
+```
+
+이 함수는 LangChain을 사용하여 퀴즈 생성 프로세스를 구현합니다:
+- `@st.cache_data` 데코레이터를 사용하여 동일한 입력에 대한 퀴즈 생성 결과를 캐시합니다.
+- 입력 검증을 수행하여 빈 문서 리스트에 대해 빈 퀴즈를 반환합니다.
+- `format_docs` 함수(별도 정의 필요)를 사용하여 문서를 표준 형식으로 변환합니다.
+- LangChain의 체인 개념을 사용하여 퀴즈 생성 프로세스를 구성합니다:
+  1. `questions_chain`: 문맥과 난이도를 고려하여 질문을 생성합니다.
+  2. `formatting_chain`: 생성된 질문을 구조화된 형식으로 변환합니다.
+  3. `output_parser`: 최종 출력을 파싱하여 사용
