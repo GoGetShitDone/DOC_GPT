@@ -34,7 +34,7 @@ def main():
     st.title("🐻 Ullala GPT")
 
     tab1, tab2, tab3 = st.tabs(
-        ["📍 README", "📍 DOCUMENT GPT CODE", "📍 QUIZ GPT CODE"])
+        ["🐝 README", "🍯 DOCUMENT GPT CODE", "🍯 QUIZ GPT CODE"])
 
     with tab1:
         st.markdown("""
