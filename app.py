@@ -34,11 +34,11 @@ def main():
     st.title("🐻 Ullala GPT")
 
     tab1, tab2, tab3 = st.tabs(
-        ["🐝 README", "🍯 DOCUMENT GPT CODE", "🍯 QUIZ GPT CODE"])
+        ["🐝 README", "🐝 DOCUMENT GPT CODE", "🐝 QUIZ GPT CODE"])
 
     with tab1:
         st.markdown("""
-                        ## README
+                        ## 🍯 README
                         업로드한 문서를 기반으로 AI에게 질문하고 답변을 받을 수 있으며, 자료 기반 퀴즈 생성이 가능합니다.
                             \n
                             1. app 페이지
@@ -68,13 +68,13 @@ def main():
                         """)
 
     with tab2:
-        display_code_tab("Document GPT CODE", "Document_gpt.py")
+        display_code_tab("## 🍯 Document GPT CODE", "Document_gpt.py")
 
     with tab3:
-        display_code_tab("Quiz GPT CODE", "Quiz_gpt.py")
+        display_code_tab("## 🍯 Quiz GPT CODE", "Quiz_gpt.py")
 
     with st.sidebar:
-        st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🐻 Ullala GitHub</button></a>', unsafe_allow_html=True)
+        st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
