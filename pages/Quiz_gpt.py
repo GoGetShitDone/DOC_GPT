@@ -346,7 +346,8 @@ with st.sidebar:
 #     st.write(f"quiz questions: {len(st.session_state.quiz['questions'])}")
 
 if not docs:
-    st.markdown("Quiz GPT에 오신 것을 환영합니다. 사이드바에 API 키를 입력하고 소스를 선택해주세요.")
+    st.markdown(
+        "Quiz GPT 를 활용해 문서 또는 Wiki로 문제를 만들 수 있습니다.<br>사이드바에 API 키를 입력하고 소스를 선택해주세요.")
 elif api_key and is_valid_api_key(api_key):
     if 'quiz' in st.session_state and 'questions' in st.session_state.quiz and len(st.session_state.quiz["questions"]) > 0:
         st.subheader(f"주제: {topic if topic else '파일 업로드'}")
