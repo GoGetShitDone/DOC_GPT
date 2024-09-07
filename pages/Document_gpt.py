@@ -142,45 +142,47 @@ def is_valid_api_key(api_key):
 
 st.title("📄 Document GPT")
 
-st.markdown("챗봇을 사용하여 파일을 업로드 하고 AI에게 질문하세요!<br>사이드 바에 API 키를 입력하고 파일을 업로드하세요!<br>API 키는 저장되지 않습니다.",
+st.markdown("##### <br>챗봇을 사용하여 파일을 업로드 하고 AI에게 질문하세요!<br><br>사이드 바에 API 키를 입력하고 파일을 업로드하세요!<br><br>API 키는 저장되지 않습니다.",
             unsafe_allow_html=True)
 
 with st.sidebar:
+    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
     api_key = st.text_input("OpenAI API Key", type="password")
     file = st.file_uploader("Upload a .txt, .pdf, .docs, .md files only", type=[
                             "pdf", "txt", "docx", "md"])
 
-if api_key:
-    if is_valid_api_key(api_key):
-        os.environ["OPENAI_API_KEY"] = api_key
-        st.success("API 키가 유효합니다.")
+    if api_key:
+        if is_valid_api_key(api_key):
+            os.environ["OPENAI_API_KEY"] = api_key
+            st.success("API 키가 유효합니다.")
 
-        if file:
-            try:
-                retriever = embed_file(file, api_key)
-                llm = get_openai_model(api_key)
-                send_message("Good! Ask Anything!", "ai", save=False)
-                paint_history()
-                message = st.chat_input("Ask Anything! about your file...")
-                if message:
-                    send_message(message, "human")
-                    chain = ({
-                        "context": retriever | RunnableLambda(format_docs),
-                        "question": RunnablePassthrough(),
-                    } | prompt | llm)
-                    with st.chat_message("ai"):
-                        response = chain.invoke(message)
-                        save_message(response.content, "ai")
-            except Exception as e:
-                st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
-                logging.error(
-                    f"Error processing file: {str(e)}", exc_info=True)
+            if file:
+                try:
+                    retriever = embed_file(file, api_key)
+                    llm = get_openai_model(api_key)
+                    send_message("Good! Ask me anything!", "ai", save=False)
+                    paint_history()
+                    message = st.chat_input("첨부 자료에 관한 질문을 해주세요.")
+                    if message:
+                        send_message(message, "human")
+                        chain = ({
+                            "context": retriever | RunnableLambda(format_docs),
+                            "question": RunnablePassthrough(),
+                        } | prompt | llm)
+                        with st.chat_message("ai"):
+                            response = chain.invoke(message)
+                            save_message(response.content, "ai")
+                except Exception as e:
+                    st.error(f"파일 처리 중 오류가 발생했습니다: {str(e)}")
+                    logging.error(
+                        f"Error processing file: {str(e)}", exc_info=True)
+            else:
+                st.warning("파일을 업로드 해주세요.")
         else:
-            st.warning("Please upload a file in the sidebar.")
-    else:
-        st.error("Invalid API key. Please check your OpenAI API key and try again.")
-elif not api_key:
-    st.warning("Please enter your OpenAI API key in the sidebar.")
+            st.error(
+                "잘못된 API 키입니다. OpenAI API 키를 확인하고 다시 시도해주세요.")
+    elif not api_key:
+        st.warning("OpenAI API 키를 입력해주세요.")
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []

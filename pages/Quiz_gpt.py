@@ -288,6 +288,7 @@ formatting_prompt = ChatPromptTemplate.from_messages([(
 """)])
 
 with st.sidebar:
+    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
     api_key = st.text_input("OpenAI API Key", type="password")
     docs = None
     topic = None
@@ -347,7 +348,7 @@ with st.sidebar:
 
 if not docs:
     st.markdown(
-        "Quiz GPT 를 활용해 문서 또는 Wiki로 문제를 만들 수 있습니다.<br>사이드바에 API 키를 입력하고 소스를 선택해주세요.",
+        "##### <br>Quiz GPT 를 활용해 문서 또는 Wiki로 문제를 만들 수 있습니다.<br><br>사이드바에 API 키를 입력하고 소스를 선택해주세요.",
         unsafe_allow_html=True)
 elif api_key and is_valid_api_key(api_key):
     if 'quiz' in st.session_state and 'questions' in st.session_state.quiz and len(st.session_state.quiz["questions"]) > 0:
