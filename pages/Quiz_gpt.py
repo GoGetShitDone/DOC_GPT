@@ -126,7 +126,7 @@ def split_file(file):
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
         chunk_size=300,
-        chunk_overlap=100,
+        chunk_overlap=20,
     )
     loader = UnstructuredFileLoader(file_path)
     docs = loader.load_and_split(text_splitter=splitter)
