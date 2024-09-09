@@ -138,33 +138,31 @@ questions_prompt = ChatPromptTemplate.from_messages(
         (
             "system",
             """
-    당신은 선생님 역할을 하는 도움이 되는 조수입니다.
-
-    주어진 컨텍스트만을 바탕으로 사용자의 지식을 테스트하기 위한 (열) 개의 질문을 만드세요.
-
-    각 질문은 4개의 답변을 가져야 하며, 그 중 3개는 틀린 답변이고 1개는 정답이어야 합니다.
-
-    정답을 표시하기 위해 (o)를 사용하세요.
-
-    문제의 난이도는 {difficulty}입니다. "쉬움" 난이도의 경우, 컨텍스트에서 쉽게 추론할 수 있는 질문을 만드세요. "보통" 난이도의 경우, 60%의 질문은 쉽게 추론할 수 있고, 40%는 약간의 사고가 필요한 질문을 만드세요. "어려움" 난이도의 경우, 40%의 질문은 쉬움에서 보통 수준이고, 60%는 깊은 이해와 추론이 필요한 질문을 만드세요.
-
-    질문 예시:
-
-    질문: 바다의 색은 무엇인가요?
-    답변: 빨강|노랑|초록|파랑(o)
-
-    질문: 조지아의 수도는 어디인가요?
-    답변: 바쿠|트빌리시(o)|마닐라|베이루트
-
-    질문: 아바타는 언제 개봉했나요?
-    답변: 2007|2001|2009(o)|1998
-
-    질문: 줄리어스 시저는 누구였나요?
-    답변: 로마 황제(o)|화가|배우|모델
-
-    이제 시작하세요!
-
-    컨텍스트: {context}
+    You are a helpful assistant that is role playing as a teacher.
+    
+    Based ONLY on the following context make (TEN) questions minimum to test the user's knowledge about the text.
+    
+    Each question should have 4 answers, three of them must be incorrect and one should be correct.
+    
+    Use (o) to signal the correct answer.
+    
+    Question examples:
+    
+    Question: What is the color of the ocean?
+    Answers: Red|Yellow|Green|Blue(o)
+    
+    Question: What is the capital or Georgia?
+    Answers: Baku|Tbilisi(o)|Manila|Beirut
+    
+    Question: When was Avatar released?
+    Answers: 2007|2001|2009(o)|1998
+    
+    Question: Who was Julius Caesar?
+    Answers: A Roman Emperor(o)|Painter|Actor|Model
+    
+    Your turn!
+    
+    Context: {context}
 """,
         )
     ]
@@ -173,73 +171,73 @@ questions_prompt = ChatPromptTemplate.from_messages(
 formatting_prompt = ChatPromptTemplate.from_messages([(
     "system",
     """
-    당신은 강력한 포맷팅 알고리즘입니다.
-
-    시험 문제를 JSON 형식으로 포맷팅합니다.
-    (o)가 있는 답변이 정답입니다.
-
-    입력 예시:
-    질문: 바다의 색은 무엇인가요?
-    답변: 빨강|노랑|초록|파랑(o)
-
-    질문: 조지아의 수도는 어디인가요?
-    답변: 바쿠|트빌리시(o)|마닐라|베이루트
-
-    질문: 아바타는 언제 개봉했나요?
-    답변: 2007|2001|2009(o)|1998
-
-    질문: 줄리어스 시저는 누구였나요?
-    답변: 로마 황제(o)|화가|배우|모델
-
-
-    출력 예시:
-
+    You are a powerful formatting algorithm.
+    
+    You format exam questions into JSON format.
+    Answers with (o) are the correct ones.
+    
+    Example Input:
+    Question: What is the color of the ocean?
+    Answers: Red|Yellow|Green|Blue(o)
+    
+    Question: What is the capital or Georgia?
+    Answers: Baku|Tbilisi(o)|Manila|Beirut
+    
+    Question: When was Avatar released?
+    Answers: 2007|2001|2009(o)|1998
+    
+    Question: Who was Julius Caesar?
+    Answers: A Roman Emperor(o)|Painter|Actor|Model
+    
+    
+    Example Output:
+    
     ```json
     {{ "questions": [
             {{
-                "question": "바다의 색은 무엇인가요?",
+                "question": "What is the color of the ocean?",
                 "answers": [
                         {{
-                            "answer": "빨강",
+                            "answer": "Red",
                             "correct": false
                         }},
                         {{
-                            "answer": "노랑",
+                            "answer": "Yellow",
                             "correct": false
                         }},
                         {{
-                            "answer": "초록",
+                            "answer": "Green",
                             "correct": false
                         }},
                         {{
-                            "answer": "파랑",
+                            "answer": "Blue",
                             "correct": true
                         }},
                 ]
             }},
                         {{
-                "question": "조지아의 수도는 어디인가요?",
+                "question": "What is the capital or Georgia?",
                 "answers": [
                         {{
-                            "answer": "바쿠",
+                            "answer": "Baku",
                             "correct": false
                         }},
                         {{
-                            "answer": "트빌리시",
+                            "answer": "Tbilisi",
                             "correct": true
                         }},
                         {{
-                            "answer": "마닐라",
+                            "answer": "Manila",
                             "correct": false
                         }},
                         {{
-                            "answer": "베이루트",
+                            "answer": "Beirut",
                             "correct": false
                         }},
                 ]
             }},
                         {{
-                "question": "아바타는 언제 개봉했나요?",
+                "question": "When was Avatar released?",
                 "answers": [
                         {{
                             "answer": "2007",
@@ -260,22 +258,22 @@ formatting_prompt = ChatPromptTemplate.from_messages([(
                 ]
             }},
             {{
-                "question": "줄리어스 시저는 누구였나요?",
+                "question": "Who was Julius Caesar?",
                 "answers": [
                         {{
-                            "answer": "로마 황제",
+                            "answer": "A Roman Emperor",
                             "correct": true
                         }},
                         {{
-                            "answer": "화가",
+                            "answer": "Painter",
                             "correct": false
                         }},
                         {{
-                            "answer": "배우",
+                            "answer": "Actor",
                             "correct": false
                         }},
                         {{
-                            "answer": "모델",
+                            "answer": "Model",
                             "correct": false
                         }},
                 ]
@@ -283,9 +281,9 @@ formatting_prompt = ChatPromptTemplate.from_messages([(
         ]
     }}
     ```
-    이제 시작하세요!
-    문제들: {context}
-""")])
+    Your turn!
+    Questions: {context}
+""",)])
 
 with st.sidebar:
     st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
