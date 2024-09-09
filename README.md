@@ -1,4 +1,9 @@
-# DOC GPT
+## 목차
+1. [Ullala GPT](#Ullala_GPT)
+2. [첨부 01 :Document GPT](#첨부자료-01--document_gptpy-코드-설명)
+3. [첨부 02 : Quiz GPT 코드](#첨부-02--quiz-gpt-코드)
+
+# Ullala GPT
 
 Document GPT는 Streamlit을 이용해 만든 대화형 문서 분석 애플리케이션입니다. 사용자가 업로드한 문서를 기반으로 AI에게 질문하고 답변을 받을 수 있습니다.
 

@@ -52,7 +52,7 @@ def is_valid_api_key(api_key):
 def get_openai_model(api_key):
     return ChatOpenAI(
         temperature=0.1,
-        model="gpt-4-0613",
+        model="gpt-3.5-turbo",
         streaming=True,
         callbacks=[StreamingStdOutCallbackHandler()],
         openai_api_key=api_key,
@@ -125,7 +125,7 @@ def split_file(file):
     logging.info(f"파일 저장: {file_path}")
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
-        chunk_size=600,
+        chunk_size=300,
         chunk_overlap=100,
     )
     loader = UnstructuredFileLoader(file_path)
