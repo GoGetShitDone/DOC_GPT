@@ -125,7 +125,7 @@ def split_file(file):
     logging.info(f"파일 저장: {file_path}")
     splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n",
-        chunk_size=300,
+        chunk_size=100,
         chunk_overlap=20,
     )
     loader = UnstructuredFileLoader(file_path)
