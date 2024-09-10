@@ -3,6 +3,7 @@ import os
 import requests
 import logging
 import wikipedia
+import urllib.parse
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chat_models import ChatOpenAI
@@ -88,6 +89,12 @@ def run_quiz_chain(_docs, topic, _llm, difficulty):
     chain = {"context": questions_chain} | formatting_chain | output_parser
     return chain.invoke(formatted_docs)
 
+
+# @st.cache_data(show_spinner="위키피디아 검색 중...")
+# def wiki_search(term):
+#     retriever = WikipediaRetriever(top_k_results=5)
+#     docs = retriever.get_relevant_documents(term)
+#     return docs
 
 @st.cache_data(show_spinner="위키피디아 검색 중...")
 def wiki_search(term):

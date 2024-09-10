@@ -33,8 +33,8 @@ st.set_page_config(
 def main():
     st.title("🐻 Ullala GPT")
 
-    tab1, tab2, tab3 = st.tabs(
-        ["🐝 README", "🐝 DOCUMENT GPT CODE", "🐝 QUIZ GPT CODE"])
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["🐝 README", "🐝 DOCUMENT GPT CODE", "🐝 QUIZ GPT CODE", "🐝 SITE GPT CODE"])
 
     with tab1:
         st.markdown("""
@@ -56,6 +56,11 @@ def main():
                                 - WIKI 선택 시 키워드 검색을 통해 키워드 관련 퀴즈 제공 
                                 - 파일 업로드 선택 시 업로드 문서(.txt, .pdf, .docx, .md 파일 지원)에 따른 퀴즈 제공
                             \n
+                            4. Site GPT 페이지
+                                - OpenAI API 키 입력 및 유효성 검증
+                                - Web site 주소 입력 후 관련 검색 가능 
+                                - .xml 형태의 Web site 주소 입력 필요
+                            \n
                             4. 파일 구조 
                                 .
                                 ├── .gitignore
@@ -63,6 +68,7 @@ def main():
                                 ├── pages
                                 │   └── Document_gpt.py
                                 │   ├── Quiz_gpt.py
+                                │   └── Site_gpt.py
                                 └── requirements.txt
                                 
                         """)
@@ -72,6 +78,9 @@ def main():
 
     with tab3:
         display_code_tab("## 🍯 Quiz GPT CODE", "Quiz_gpt.py")
+
+    with tab4:
+        display_code_tab("## 🍯 Site GPT CODE", "site_gpt.py")
 
     with st.sidebar:
         st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
