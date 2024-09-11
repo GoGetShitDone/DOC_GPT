@@ -274,10 +274,9 @@ if url:
             with st.chat_message("ai"):
                 chain.invoke(query)
 
-"""
-기존 시도했던 코드 
 
-"""
+# --------------------------------------
+# 기존 시도했던 코드
 
 # import streamlit as st
 # import requests
