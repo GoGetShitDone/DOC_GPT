@@ -216,24 +216,20 @@ def paint_history():
 
 st.set_page_config(
     page_title="SiteGPT",
-    page_icon="🖥️",
+    page_icon="🌐",
     layout="wide",
 )
 
+st.title("🌐 Site GPT")
+
 st.markdown(
-    """
-    # SiteGPT
-            
-    Ask questions about the content of a website.
-            
-    Start by writing the URL of the website on the sidebar.
-"""
+    """##### <br>cloudflare의 정보를 검색할 수 있습니다.<br><br>API Key를 입력하고 검색을 하세요.<br>""", unsafe_allow_html=True
 )
 
 
 with st.sidebar:
     st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
-    openai_api_key = st.text_input("Input your OpenAI API Key")
+    openai_api_key = st.text_input("OpenAI API 키를 입력해주세요.")
     url = st.text_input(
         "Write down a URL",
         placeholder="https://example.com",
@@ -243,9 +239,9 @@ with st.sidebar:
 if url:
     if ".xml" not in url:
         with st.sidebar:
-            st.error("Please write down a Sitemap URL(.xml)")
+            st.error("Sitemap URL 주소를 입력하세요(.xml 형식)")
     if not openai_api_key:
-        st.error("Please input your OpenAI API Key on the sidebar")
+        st.error("OpenAI API 키를 입력해주세요.")
     else:
         paint_history()
         llm_for_get_answer = ChatOpenAI(
@@ -260,7 +256,7 @@ if url:
         )
 
         retriever = load_website(url)
-        query = st.chat_input("Ask a question to the website.")
+        query = st.chat_input("Website에 관한 질문을 하세요.")
         if query:
             send_message(query, "human")
             chain = (
