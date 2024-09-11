@@ -217,6 +217,7 @@ def paint_history():
 st.set_page_config(
     page_title="SiteGPT",
     page_icon="🖥️",
+    layout="wide",
 )
 
 st.markdown(
