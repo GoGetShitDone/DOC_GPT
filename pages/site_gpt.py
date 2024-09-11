@@ -108,7 +108,7 @@ choose_prompt = ChatPromptTemplate.from_messages(
             Answers: {answers}
             ---
             Examples:
-                                                  
+
             The moon is 384,400 km away.
 
             Source: https://example.com
@@ -231,6 +231,7 @@ st.markdown(
 
 
 with st.sidebar:
+    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
     openai_api_key = st.text_input("Input your OpenAI API Key")
     url = st.text_input(
         "Write down a URL",
@@ -238,13 +239,10 @@ with st.sidebar:
         value="https://developers.cloudflare.com/sitemap.xml",
         disabled=True,
     )
-    st.markdown("---")
-    st.write("Github: https://github.com/fullstack-gpt-python/assignment-17")
-
 if url:
     if ".xml" not in url:
         with st.sidebar:
-            st.error("Please write down a Sitemap URL.")
+            st.error("Please write down a Sitemap URL(.xml)")
     if not openai_api_key:
         st.error("Please input your OpenAI API Key on the sidebar")
     else:
