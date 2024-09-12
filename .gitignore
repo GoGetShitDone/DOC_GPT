@@ -1,6 +1,9 @@
 # Virtual Environment
 venv/
 
+# About API
+.env
+
 # cache
 .cache/
 

@@ -228,7 +228,7 @@ st.markdown(
 
 
 with st.sidebar:
-    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
+    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 24px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub </button></a>', unsafe_allow_html=True)
     openai_api_key = st.text_input("OpenAI API 키를 입력해주세요.")
     url = st.text_input(
         "Write down a URL",

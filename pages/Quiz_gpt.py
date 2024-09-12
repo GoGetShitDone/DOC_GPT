@@ -293,7 +293,7 @@ formatting_prompt = ChatPromptTemplate.from_messages([(
 """,)])
 
 with st.sidebar:
-    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 30px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub</button></a>', unsafe_allow_html=True)
+    st.markdown('<a href="https://github.com/GoGetShitDone/DOC_GPT" target="_blank"><button style="background-color:#0F1116;color:white;padding:10px 24px;border:none;border-radius:5px;cursor:pointer;">🍯 Ullala GitHub.</button></a>', unsafe_allow_html=True)
     api_key = st.text_input("OpenAI API Key", type="password")
     docs = None
     topic = None
