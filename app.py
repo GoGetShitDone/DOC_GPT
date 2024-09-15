@@ -34,7 +34,7 @@ def main():
     st.title("🐻 Ullala GPT")
 
     tab1, tab2, tab3, tab4, tab5, = st.tabs(
-        ["🐝 README", "🐝 DOCUMENT GPT CODE", "🐝 INVESTOR GPT CODE", "🐝 QUIZ GPT CODE", "🐝 SITE GPT CODE"])
+        ["🐝 README", "🐝 DOCUMENT GPT CODE", "🐝 Resrarch & Invest CODE", "🐝 QUIZ GPT CODE", "🐝 SITE GPT CODE"])
 
     with tab1:
         st.markdown("""
@@ -45,26 +45,26 @@ def main():
                                 - 기본 안내사항을 받을 수 있습니다. 
                                 - 페이지 내 탭을 통해 Source Code를 확인할 수 있습니다. 
                             \n
-                            2. Investor 페이지
+                            2. Document 페이지
                                 - API 키를 입력하고 유효성 검증합니다. 
-                                - 
-                                - 
+                                - 문서를 첨부하고 문서를 바탕으로 AI에게 질문하고 답변받을 수 있습니다. 
+                                - 첨부 문서는 .txt, .pdf, .docx, .md 파일을 지원합니다. 
                             \n
-                            3. Quiz GPT 페이지
+                            3. Resrarch & Invest 페이지
+                                - API 키를 입력하고 유효성 검증합니다. 
+                                - Streamlit을 통해 대화 기록을 표시하는 사용하여 유저 인터페이스 제공
+                                - OpenAI Assistant 기능을 구현으로 Duck Duck Go Search Tool, Wikipedia Search Tool 활용 리서치 정보 제공
+                            \n
+                            4. Quiz GPT 페이지
                                 - OpenAI API 키 입력 및 유효성 검증
                                 - WIKI 또는 파일 업로드 선택 가능 
                                 - WIKI 선택 시 키워드 검색을 통해 키워드 관련 퀴즈 제공 
                                 - 파일 업로드 선택 시 업로드 문서(.txt, .pdf, .docx, .md 파일 지원)에 따른 퀴즈 제공
                             \n
-                            4. Site GPT 페이지
+                            5. Site GPT 페이지
                                 - OpenAI API 키 입력 및 유효성 검증
                                 - Web site 주소 입력 후 관련 검색 가능 
                                 - .xml 형태의 Web site 주소 입력 필요
-                            \n
-                            5. Document 페이지
-                                - API 키를 입력하고 유효성 검증합니다. 
-                                - 문서를 첨부하고 문서를 바탕으로 AI에게 질문하고 답변받을 수 있습니다. 
-                                - 첨부 문서는 .txt, .pdf, .docx, .md 파일을 지원합니다. 
                             \n
                             6. 파일 구조 
                                 .
@@ -83,7 +83,7 @@ def main():
         display_code_tab("## 🍯 Document GPT CODE", "Document_gpt.py")
 
     with tab3:
-        display_code_tab("## 🍯 Investor GPT CODE", "Investor_gpt.py")
+        display_code_tab("## 🍯 Research & Invest GPT CODE", "Investor_gpt.py")
 
     with tab4:
         display_code_tab("## 🍯 Quiz GPT CODE", "Quiz_gpt.py")

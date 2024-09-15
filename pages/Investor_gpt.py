@@ -132,7 +132,7 @@ class InvestorGPTApp:
     @staticmethod
     def setup_page():
         st.set_page_config(
-            page_title="Resrarch & Invest",
+            page_title="Resrarch & Invest GPT",
             page_icon="📈",
             layout="wide",
         )
@@ -218,6 +218,7 @@ if __name__ == "__main__":
     app = InvestorGPTApp()
     app.run()
 
+# class 분류 이전
 # import streamlit as st
 # import time
 # import openai
@@ -439,7 +440,8 @@ if __name__ == "__main__":
 # else:
 #     st.warning("OpenAI API 키를 입력해주세요.")
 
-# # 이전 과제의 코드
+
+# # 이전 과제 코드 / 기초 코드 자료
 # # import streamlit as st
 # # import os
 # # import requests
